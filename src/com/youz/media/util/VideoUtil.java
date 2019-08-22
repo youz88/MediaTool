@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class VideoUtil {
+import static com.youz.media.util.MediaFileInfoParse.FFMPEG_PATH;
 
-    public static SimpleDateFormat HH_MM_SS = new SimpleDateFormat("HH:mm:ss");
+public class VideoUtil {
 
     /****
      * 获取指定时间内的图片
@@ -23,13 +23,13 @@ public class VideoUtil {
      * @param min:指定分
      * @param sec:指定秒
      */
-    public static Boolean getThumb(String ffmpegPath, String videoPath, String imagePath, String hour, String min, String sec, String pixel) {
+    public static Boolean getThumb(String videoPath, String imagePath, String hour, String min, String sec, String pixel) {
         //ffmpeg.exe -i C:\yz\file_server\video\CSGO\123.ts -ss 00:00:20 -r 1 -q:v 2 -f image2 C:\yz\file_server\video\CSGO\a.jpeg
         //ffmpeg.exe -ss 02:00:20 -i D:\file_server\132.mkv -y -f image2 D:\file_server\a.jpg
         //ffmpeg.exe -ss 00:45:30 -i C:\yz\file_server\video\CSGO\123.ts  -vf select='eq(pict_type\,I)' -vsync 2 -s 1920*1080 -f image2 C:\yz\file_server\video\CSGO\a.jpg
         List<String> commands = new ArrayList<String>();
 
-        commands.add(ffmpegPath);
+        commands.add(FFMPEG_PATH);
         commands.add("-ss");
         commands.add(hour + ":" + min + ":" + sec);
         commands.add("-i");
@@ -73,11 +73,11 @@ public class VideoUtil {
      * @param toImagePath:图片保存路径
      * @param pixel:图片尺寸
      */
-    public static Boolean changePixel(String ffmpegPath, String sourcePath, String toImagePath, String pixel) {
+    public static Boolean changePixel(String sourcePath, String toImagePath, String pixel) {
 //        ffmpeg.exe -i C:\\yz\\1.jpg -s 267x151 -y -f image2 C:\\yz\\a.jpg
         List<String> commands = new ArrayList<String>();
 
-        commands.add(ffmpegPath);
+        commands.add(FFMPEG_PATH);
         commands.add("-i");
         commands.add(sourcePath);
         commands.add("-s");
@@ -107,62 +107,96 @@ public class VideoUtil {
      * 截取视频时长
      * @param sourcePath:源视频路径
      * @param targetPath:目标视频路径
-     * @param durationFormat:总时长
+     * @param duration:总时长
      */
-    public static Boolean interceptVodTime(String ffmpegPath, String sourcePath, String targetPath, String durationFormat, Integer startTime, Integer endTime) {
-//        ffmpeg  -i ./我与精彩集锦只差一个走位的距离.ts -vcodec copy -acodec copy -ss 00:00:00 -to 00:06:45 ./我与 精彩集锦只差1一个走位的距离.ts -y        List<String> commands = new ArrayList<String>();
+    public static void interceptVodTime(String sourcePath, String targetPath, Integer duration, Integer startTime, Integer endTime, Integer cycle) {
+//        ffmpeg  -i ./我与精彩集锦只差一个走位的距离.ts -vcodec copy -acodec copy -ss 00:00:00 -to 00:06:45 ./我与 精彩集锦只差1一个走位的距离.ts -y
 
         File file = new File(targetPath);
+        String suffix = file.getName().substring(file.getName().lastIndexOf("."));
         File directory = new File(file.getParent());
-        if(!directory.exists()){
+        if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        String[] split = durationFormat.split(":");
+        endTime = duration - endTime;
+        String start;
+        String end;
 
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.set(Calendar.HOUR,0);
-        startCalendar.set(Calendar.MINUTE,0);
-        startCalendar.set(Calendar.SECOND,0);
-        startCalendar.add(Calendar.SECOND,startTime);
-        String start = String.format("%02d",startCalendar.get(Calendar.HOUR)) + ":" + String.format("%02d",startCalendar.get(Calendar.MINUTE)) + ":" + String.format("%02d",startCalendar.get(Calendar.SECOND));
+        int index = 1;
+        if (cycle > 0) {
+            for (int i = startTime; i < endTime; i = i + cycle) {
+                String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(".")) + "_" + index + suffix;
+                start = durationFormat(i);
+                if(i+cycle < endTime){
+                    end = durationFormat(i+cycle);
+                }else {
+                    end = durationFormat(endTime);
+                }
 
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR,Integer.valueOf(split[0]));
-        endCalendar.set(Calendar.MINUTE,Integer.valueOf(split[1]));
-        endCalendar.set(Calendar.SECOND,Integer.valueOf(split[2].substring(0,split[2].lastIndexOf("."))));
-        endCalendar.add(Calendar.SECOND,-endTime);
-        String end = String.format("%02d",endCalendar.get(Calendar.HOUR)) + ":" + String.format("%02d",endCalendar.get(Calendar.MINUTE)) + ":" + String.format("%02d",endCalendar.get(Calendar.SECOND));
-
-        List<String> commands = new ArrayList<String>();
-
-        commands.add(ffmpegPath);
-        commands.add("-i");
-        commands.add(sourcePath);
-        commands.add("-vcodec");
-        commands.add("copy");
-        commands.add("-acodec");
-        commands.add("copy");
-        commands.add("-ss");
-        commands.add(start);
-        commands.add("-to");
-        commands.add(end);
-        commands.add(targetPath);
-        try {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commands);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            InputStream in = process.getInputStream();
-            byte[] bytes = new byte[1024];
-            while (in.read(bytes) != -1) {
+                List<String> commands = new ArrayList<String>();
+                commands.add(FFMPEG_PATH);
+                commands.add("-ss");
+                commands.add(start);
+                commands.add("-to");
+                commands.add(end);
+                commands.add("-accurate_seek");
+                commands.add("-i");
+                commands.add(sourcePath);
+                commands.add("-codec");
+                commands.add("copy");
+                commands.add("-avoid_negative_ts");
+                commands.add("1");
+                commands.add(filePath);
+                try {
+                    ProcessBuilder builder = new ProcessBuilder();
+                    builder.command(commands);
+                    builder.redirectErrorStream(true);
+                    Process process = builder.start();
+                    InputStream in = process.getInputStream();
+                    byte[] bytes = new byte[1024];
+                    while (in.read(bytes) != -1) {
 //                System.out.println("...");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                index++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+        }else {
+            String filePath = file.getParent() + File.separator + index + "_" + file.getName();
+            start = durationFormat(startTime);
+            end = durationFormat(endTime);
+
+            List<String> commands = new ArrayList<String>();
+
+            commands.add(FFMPEG_PATH);
+            commands.add("-ss");
+            commands.add(start);
+            commands.add("-to");
+            commands.add(end);
+            commands.add("-accurate_seek");
+            commands.add("-i");
+            commands.add(sourcePath);
+            commands.add("-codec");
+            commands.add("copy");
+            commands.add("-avoid_negative_ts");
+            commands.add("1");
+            commands.add(filePath);
+            try {
+                ProcessBuilder builder = new ProcessBuilder();
+                builder.command(commands);
+                builder.redirectErrorStream(true);
+                Process process = builder.start();
+                InputStream in = process.getInputStream();
+                byte[] bytes = new byte[1024];
+                while (in.read(bytes) != -1) {
+//                System.out.println("...");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return false;
     }
 
     public static void trim(String scourcePath, String createPath, Integer x, Integer y, Integer width, Integer height) {
@@ -214,5 +248,25 @@ public class VideoUtil {
             }
         }
         return list;
+    }
+
+    public static String durationFormat(Integer duration) {
+        StringBuffer buffer = new StringBuffer();
+        int h = duration / 3600;
+        if (h > 0) {
+            buffer.append(String.format("%02d", h)).append(":");
+        } else {
+            buffer.append(String.format("%02d", 0)).append(":");
+        }
+        int time = duration % 3600;
+        if (time > 0) {
+            int m = time / 60;
+            int s = time % 60;
+            buffer.append(String.format("%02d", m)).append(":");
+            buffer.append(String.format("%02d", s));
+        } else {
+            buffer.append("00:00");
+        }
+        return buffer.toString();
     }
 }

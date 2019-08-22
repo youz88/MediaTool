@@ -1,5 +1,7 @@
 package com.youz.media.model;
 
+import javafx.scene.control.CheckBox;
+
 public class MediaInfo {
 
     /** 时长(300) */
@@ -33,6 +35,9 @@ public class MediaInfo {
     /** 唯一标识 */
     private Integer id;
 
+    /** 唯一标识 */
+    private CheckBox checkbox = new CheckBox();
+
     /** 文件名称 */
     private String fileName;
 
@@ -44,6 +49,14 @@ public class MediaInfo {
 
     /** 文件路径 */
     private Long fileSize;
+
+    public CheckBox getCheckbox() {
+        return checkbox;
+    }
+
+    public void setCheckbox(CheckBox checkbox) {
+        this.checkbox = checkbox;
+    }
 
     public Integer getId() {
         return id;
