@@ -29,7 +29,7 @@
       </MenuBar>
    </top>
    <bottom>
-      <ProgressBar prefHeight="18.0" prefWidth="1393.0" progress="0.0" BorderPane.alignment="CENTER" />
+      <ProgressBar prefHeight="18.0" prefWidth="1393.0" progress="0.0" BorderPane.alignment="CENTER" fx:id="progressBar" />
    </bottom>
    <right>
       <SplitPane prefHeight="657.0" prefWidth="450.0" BorderPane.alignment="CENTER">
@@ -51,12 +51,11 @@
    <center>
       <TableView fx:id="mediTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <columns>
-          <TableColumn fx:id="checkBox" prefWidth="50.0" text="选择" />
-          <TableColumn fx:id="id" prefWidth="50.0" text="序号" />
-          <TableColumn fx:id="fileName" prefWidth="272.0" text="名称" />
+            <TableColumn fx:id="id" prefWidth="50.0" text="序号" />
+            <TableColumn fx:id="fileName" prefWidth="272.0" text="名称" />
             <TableColumn fx:id="durationFormat" prefWidth="110.0" text="时长" />
             <TableColumn fx:id="fileSize" minWidth="0.0" prefWidth="110.0" text="大小" />
-            <TableColumn prefWidth="71.0" text="进度" />
+            <TableColumn fx:id="schedule" prefWidth="71.0" text="进度" />
             <TableColumn prefWidth="135.0" text="操作" />
         </columns>
       </TableView>

@@ -1,5 +1,7 @@
 package com.youz.media.model;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.CheckBox;
 
 public class MediaInfo {
@@ -35,28 +37,17 @@ public class MediaInfo {
     /** 唯一标识 */
     private Integer id;
 
-    /** 唯一标识 */
-    private CheckBox checkbox = new CheckBox();
-
     /** 文件名称 */
     private String fileName;
 
     /** 进度 */
-    private Integer schedule;
+    private StringProperty schedule = new SimpleStringProperty("未完成");
 
     /** 文件路径 */
     private String filePath;
 
     /** 文件路径 */
     private Long fileSize;
-
-    public CheckBox getCheckbox() {
-        return checkbox;
-    }
-
-    public void setCheckbox(CheckBox checkbox) {
-        this.checkbox = checkbox;
-    }
 
     public Integer getId() {
         return id;
@@ -74,12 +65,16 @@ public class MediaInfo {
         this.fileName = fileName;
     }
 
-    public Integer getSchedule() {
+    public String getSchedule() {
+        return schedule.get();
+    }
+
+    public StringProperty scheduleProperty() {
         return schedule;
     }
 
-    public void setSchedule(Integer schedule) {
-        this.schedule = schedule;
+    public void setSchedule(String schedule) {
+        this.schedule.set(schedule);
     }
 
     public String getFilePath() {

@@ -3,6 +3,7 @@ package com.youz.media;
 import com.google.common.collect.Lists;
 import com.youz.media.model.MediaInfo;
 import com.youz.media.util.VideoUtil;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,8 +22,14 @@ import org.apache.commons.lang.math.NumberUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller {
+
+    private ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 300, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     @FXML
     private CheckBox startInterceptSwitch;
@@ -37,9 +44,9 @@ public class Controller {
     @FXML
     private TextField interceptRateVal;
     @FXML
-    private TableView<MediaInfo> mediTable;
+    private ProgressBar progressBar;
     @FXML
-    TableColumn<MediaInfo, CheckBox> checkBox;
+    private TableView<MediaInfo> mediTable;
     @FXML
     TableColumn<MediaInfo, Integer> id;
     @FXML
@@ -48,6 +55,8 @@ public class Controller {
     TableColumn<MediaInfo, Long> fileSize;
     @FXML
     TableColumn<MediaInfo, String> durationFormat;
+    @FXML
+    TableColumn<MediaInfo, String> schedule;
 
     @FXML
     private void openDirectory(ActionEvent event) {
@@ -79,22 +88,33 @@ public class Controller {
 
     @FXML
     private void start(ActionEvent event) {
-        int startTime = 0;
-        int endTime = 0;
-        int cycle = 0;
-        if (startInterceptSwitch.isSelected() && StringUtils.isNotBlank(startInterceptVal.getText())) {
-            startTime = NumberUtils.toInt(startInterceptVal.getText());
-        }
-        if (endInterceptSwitch.isSelected() && StringUtils.isNotBlank(endInterceptVal.getText())) {
-            endTime = NumberUtils.toInt(endInterceptVal.getText());
-        }
-        if (interceptRateSwitch.isSelected() && StringUtils.isNotBlank(interceptRateVal.getText())) {
-            cycle = NumberUtils.toInt(interceptRateVal.getText());
-        }
-        List<MediaInfo> list = Lists.newArrayList();
-        for (MediaInfo mediaInfo:list) {
-            System.out.println(mediaInfo.getFilePath());
-//            VideoUtil.interceptVodTime(mediaInfo.getFilePath(), "" , mediaInfo.getDuration(), startTime, endTime, cycle);
+        int startTime = NumberUtils.toInt(startInterceptVal.getText());
+        int endTime = NumberUtils.toInt(endInterceptVal.getText());
+        int cycle = NumberUtils.toInt(interceptRateVal.getText());
+
+        List<MediaInfo> list = mediTable.getItems();
+        double count = list.size();
+        AtomicInteger current = new AtomicInteger();
+        for (MediaInfo mediaInfo : list) {
+            executor.execute(() -> {
+                File file = new File(mediaInfo.getFilePath());
+                VideoUtil.interceptVodTime(mediaInfo.getFilePath(), "" + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
+                mediaInfo.setSchedule("已完成");
+                progressBar.setProgress(current.incrementAndGet() / count);
+
+                if (current.get() == count) {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.titleProperty().set("提示");
+                            alert.headerTextProperty().set("操作成功");
+                            alert.showAndWait();
+                        }
+                    });
+
+                }
+            });
         }
     }
 
@@ -102,11 +122,11 @@ public class Controller {
         if (file != null) {
             List<MediaInfo> list = Lists.newArrayList();
             List<MediaInfo> mediaInfoList = VideoUtil.scan(file, list);
-            checkBox.setCellValueFactory(new PropertyValueFactory<MediaInfo,CheckBox>("checkBox"));
-            id.setCellValueFactory(new PropertyValueFactory<MediaInfo,Integer>("id"));
-            fileName.setCellValueFactory(new PropertyValueFactory<MediaInfo,String>("fileName"));
-            fileSize.setCellValueFactory(new PropertyValueFactory<MediaInfo,Long>("fileSize"));
-            durationFormat.setCellValueFactory(new PropertyValueFactory<MediaInfo,String>("durationFormat"));
+            id.setCellValueFactory(new PropertyValueFactory<MediaInfo, Integer>("id"));
+            fileName.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("fileName"));
+            fileSize.setCellValueFactory(new PropertyValueFactory<MediaInfo, Long>("fileSize"));
+            durationFormat.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("durationFormat"));
+            schedule.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("schedule"));
             ObservableList<MediaInfo> data = FXCollections.observableArrayList(mediaInfoList);
             mediTable.setItems(data);
         }
