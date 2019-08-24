@@ -5,15 +5,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage stage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("media.fxml"));
-        primaryStage.setTitle("视频处理工具 V1.0");
-        primaryStage.setScene(new Scene(root, 1200, 700));
-        primaryStage.show();
+        stage.setTitle("视频处理工具 V1.0");
+        stage.setScene(new Scene(root, 1200, 700));
+        stage.show();
     }
 
 

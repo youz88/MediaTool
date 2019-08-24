@@ -2,8 +2,10 @@ package com.youz.media;
 
 import com.google.common.collect.Lists;
 import com.youz.media.model.MediaInfo;
+import com.youz.media.util.JsonUtil;
 import com.youz.media.util.VideoUtil;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,6 +15,9 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -32,11 +37,7 @@ public class Controller {
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 300, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     @FXML
-    private CheckBox startInterceptSwitch;
-    @FXML
-    private CheckBox endInterceptSwitch;
-    @FXML
-    private CheckBox interceptRateSwitch;
+    private TextArea mediaInfoTextArea;
     @FXML
     private TextField startInterceptVal;
     @FXML
@@ -122,6 +123,7 @@ public class Controller {
         if (file != null) {
             List<MediaInfo> list = Lists.newArrayList();
             List<MediaInfo> mediaInfoList = VideoUtil.scan(file, list);
+            System.out.println(JsonUtil.toJson(mediaInfoList));
             id.setCellValueFactory(new PropertyValueFactory<MediaInfo, Integer>("id"));
             fileName.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("fileName"));
             fileSize.setCellValueFactory(new PropertyValueFactory<MediaInfo, Long>("fileSize"));
@@ -129,6 +131,11 @@ public class Controller {
             schedule.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("schedule"));
             ObservableList<MediaInfo> data = FXCollections.observableArrayList(mediaInfoList);
             mediTable.setItems(data);
+            //设置行选中时间
+            mediTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                mediaInfoTextArea.clear();
+                mediaInfoTextArea.appendText(newValue.buildTextAreaContent());
+            });
         }
     }
 

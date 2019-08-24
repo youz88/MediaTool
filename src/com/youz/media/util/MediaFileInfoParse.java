@@ -1,6 +1,5 @@
 package com.youz.media.util;
 
-
 import com.youz.media.model.MediaInfo;
 import org.apache.oro.text.regex.*;
 
@@ -19,7 +18,6 @@ public class MediaFileInfoParse {
     public static MediaInfo parse(String filepath) {
         MediaInfo mediaInfo = null;
         try {
-
             String info = getInitFileInfo(filepath);
             mediaInfo = parseFileInfo(info);
             File file = new File(filepath);
@@ -84,6 +82,7 @@ public class MediaFileInfoParse {
                             * Math.pow(60, durationArr.length - 1 - i);
                 }
                 mediaInfo.setDuration(duration);
+                mediaInfo.setStart(re.group(2));
                 mediaInfo.setBitRate(Integer.valueOf(re.group(3)));
             }
 
@@ -95,6 +94,10 @@ public class MediaFileInfoParse {
                 mediaInfo.setVideoCodeType(re.group(1));
                 mediaInfo.setVideoType(re.group(2));
                 mediaInfo.setVideoPixel(re.group(3));
+                mediaInfo.setVideoFps(re.group(4));
+                mediaInfo.setVideoTbr(re.group(5));
+                mediaInfo.setVideoTbn(re.group(6));
+                mediaInfo.setVideoTbc(re.group(7));
             }
 
             Pattern patternAudio = compiler.compile(regexAudio,
@@ -105,6 +108,8 @@ public class MediaFileInfoParse {
                 MatchResult re = matcherAudio.getMatch();
                 mediaInfo.setAudioCodeType(re.group(1));
                 mediaInfo.setAudiofreq(re.group(2));
+                mediaInfo.setAudioVoice(re.group(3));
+                mediaInfo.setAudioInterface(re.group(4));
                 mediaInfo.setAudioBitRate(re.group(5));
             }
         } catch (Exception e) {
