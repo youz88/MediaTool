@@ -2,6 +2,7 @@ package com.youz.media;
 
 import com.google.common.collect.Lists;
 import com.youz.media.model.MediaInfo;
+import com.youz.media.util.ExcelUtil;
 import com.youz.media.util.JsonUtil;
 import com.youz.media.util.VideoUtil;
 import javafx.application.Platform;
@@ -17,6 +18,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -39,11 +43,17 @@ public class Controller {
     @FXML
     private TextArea mediaInfoTextArea;
     @FXML
+    private TextField sourcePath;
+    @FXML
+    private TextField targetPath;
+    @FXML
     private TextField startInterceptVal;
     @FXML
     private TextField endInterceptVal;
     @FXML
     private TextField interceptRateVal;
+    @FXML
+    private CheckBox switchExportExcel;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -60,17 +70,33 @@ public class Controller {
     TableColumn<MediaInfo, String> schedule;
 
     @FXML
-    private void openDirectory(ActionEvent event) {
+    private void chooseSourcePath(ActionEvent event) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File file = directoryChooser.showDialog(new Stage());
-        loadTableItem(file);
+        if (file != null) {
+            sourcePath.clear();
+            sourcePath.appendText(file.getPath());
+            loadTableItem(file);
+        }
+    }
+
+    @FXML
+    private void chooseTargetPath(ActionEvent event) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File file = directoryChooser.showDialog(new Stage());
+        if (file != null) {
+            targetPath.clear();
+            targetPath.appendText(file.getPath());
+        }
     }
 
     @FXML
     private void openFile(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(new Stage());
-        loadTableItem(file);
+        if (file != null) {
+            loadTableItem(file);
+        }
     }
 
     @FXML
@@ -89,6 +115,53 @@ public class Controller {
 
     @FXML
     private void start(ActionEvent event) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.titleProperty().set("提示");
+        if (StringUtils.isBlank(targetPath.getText())) {
+            alert.headerTextProperty().set("保存路径不能为空");
+            alert.showAndWait();
+            return;
+        }
+        File file = new File(targetPath.getText().trim());
+        if (!file.exists() || !file.isDirectory()) {
+            alert.headerTextProperty().set("保存路径不存在");
+            alert.showAndWait();
+            return;
+        }
+
+        start();
+    }
+
+    private void loadTableItem(File file) {
+        if (file != null) {
+            List<MediaInfo> list = Lists.newArrayList();
+            List<MediaInfo> mediaInfoList = VideoUtil.scan(file, list);
+            id.setCellValueFactory(new PropertyValueFactory<MediaInfo, Integer>("id"));
+            fileName.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("fileName"));
+            fileSize.setCellValueFactory(new PropertyValueFactory<MediaInfo, Long>("fileSize"));
+            durationFormat.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("durationFormat"));
+            schedule.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("schedule"));
+            ObservableList<MediaInfo> data = FXCollections.observableArrayList(mediaInfoList);
+            mediTable.setItems(data);
+            //设置行选中时间
+            mediTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                mediaInfoTextArea.clear();
+                mediaInfoTextArea.appendText(newValue.buildTextAreaContent());
+            });
+
+            mediTable.setRowFactory(tv -> {
+                TableRow<MediaInfo> row = new TableRow<MediaInfo>();
+                row.setOnMouseClicked(event -> {
+                    if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                        MediaInfo mediaInfo = row.getItem();
+                    }
+                });
+                return row;
+            });
+        }
+    }
+
+    private void start() {
         int startTime = NumberUtils.toInt(startInterceptVal.getText());
         int endTime = NumberUtils.toInt(endInterceptVal.getText());
         int cycle = NumberUtils.toInt(interceptRateVal.getText());
@@ -96,10 +169,12 @@ public class Controller {
         List<MediaInfo> list = mediTable.getItems();
         double count = list.size();
         AtomicInteger current = new AtomicInteger();
+        String basePath = targetPath.getText().trim() + File.separator;
+
         for (MediaInfo mediaInfo : list) {
             executor.execute(() -> {
                 File file = new File(mediaInfo.getFilePath());
-                VideoUtil.interceptVodTime(mediaInfo.getFilePath(), "" + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
+                VideoUtil.interceptVodTime(mediaInfo.getFilePath(), basePath + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
                 mediaInfo.setSchedule("已完成");
                 progressBar.setProgress(current.incrementAndGet() / count);
 
@@ -118,25 +193,4 @@ public class Controller {
             });
         }
     }
-
-    private void loadTableItem(File file) {
-        if (file != null) {
-            List<MediaInfo> list = Lists.newArrayList();
-            List<MediaInfo> mediaInfoList = VideoUtil.scan(file, list);
-            System.out.println(JsonUtil.toJson(mediaInfoList));
-            id.setCellValueFactory(new PropertyValueFactory<MediaInfo, Integer>("id"));
-            fileName.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("fileName"));
-            fileSize.setCellValueFactory(new PropertyValueFactory<MediaInfo, Long>("fileSize"));
-            durationFormat.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("durationFormat"));
-            schedule.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("schedule"));
-            ObservableList<MediaInfo> data = FXCollections.observableArrayList(mediaInfoList);
-            mediTable.setItems(data);
-            //设置行选中时间
-            mediTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                mediaInfoTextArea.clear();
-                mediaInfoTextArea.appendText(newValue.buildTextAreaContent());
-            });
-        }
-    }
-
 }
