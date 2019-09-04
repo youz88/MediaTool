@@ -52,7 +52,11 @@
                                <TextField layoutX="125.0" layoutY="43.0" prefHeight="23.0" prefWidth="63.0" fx:id="endInterceptVal"/>
                                <TextField layoutX="125.0" layoutY="74.0" prefHeight="23.0" prefWidth="63.0" fx:id="interceptRateVal"/>
                                <Button layoutX="-2.0" layoutY="269.0" mnemonicParsing="false" onAction="#start" prefHeight="57.0" prefWidth="451.0" text="开始" />
-                              <CheckBox layoutX="283.0" layoutY="14.0" mnemonicParsing="false" text="导出Excel" fx:id="switchExportExcel"/>
+                               <CheckBox layoutX="253.0" layoutY="14.0" mnemonicParsing="false" text="导出编单Excel" fx:id="switchExportExcel"/>
+                               <Text layoutX="253.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="截图" />
+                               <TextField layoutX="290.0" layoutY="43.0" prefHeight="23.0" prefWidth="50.0" />
+                               <Text layoutX="351.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X" />
+                               <TextField layoutX="370.0" layoutY="43.0" prefHeight="23.0" prefWidth="50.0" />
                            </children>
                         </Pane>
                      </children>

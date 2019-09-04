@@ -112,29 +112,65 @@ public class VideoUtil {
     public static void interceptVodTime(String sourcePath, String targetPath, Integer duration, Integer startTime, Integer endTime, Integer cycle) {
 //        ffmpeg  -i ./我与精彩集锦只差一个走位的距离.ts -vcodec copy -acodec copy -ss 00:00:00 -to 00:06:45 ./我与 精彩集锦只差1一个走位的距离.ts -y
 
-        File file = new File(targetPath);
-        String suffix = file.getName().substring(file.getName().lastIndexOf("."));
-        File directory = new File(file.getParent());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        if (startTime > 0 || endTime > 0 || cycle > 0) {
+            File file = new File(targetPath);
+            String suffix = file.getName().substring(file.getName().lastIndexOf("."));
+            File directory = new File(file.getParent());
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
 
-        endTime = duration - endTime;
-        String start;
-        String end;
+            endTime = duration - endTime;
+            String start;
+            String end;
 
-        int index = 1;
-        if (cycle > 0) {
-            for (int i = startTime; i < endTime; i = i + cycle) {
-                String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(".")) + "_" + index + suffix;
-                start = durationFormat(i);
-                if(i+cycle < endTime){
-                    end = durationFormat(i+cycle);
-                }else {
-                    end = durationFormat(endTime);
+            int index = 1;
+            if (cycle > 0) {
+                for (int i = startTime; i < endTime; i = i + cycle) {
+                    String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(".")) + "_" + index + suffix;
+                    start = durationFormat(i);
+                    if(i+cycle < endTime){
+                        end = durationFormat(i+cycle);
+                    }else {
+                        end = durationFormat(endTime);
+                    }
+
+                    List<String> commands = new ArrayList<String>();
+                    commands.add(FFMPEG_PATH);
+                    commands.add("-ss");
+                    commands.add(start);
+                    commands.add("-to");
+                    commands.add(end);
+                    commands.add("-accurate_seek");
+                    commands.add("-i");
+                    commands.add(sourcePath);
+                    commands.add("-codec");
+                    commands.add("copy");
+                    commands.add("-avoid_negative_ts");
+                    commands.add("1");
+                    commands.add(filePath);
+                    try {
+                        ProcessBuilder builder = new ProcessBuilder();
+                        builder.command(commands);
+                        builder.redirectErrorStream(true);
+                        Process process = builder.start();
+                        InputStream in = process.getInputStream();
+                        byte[] bytes = new byte[1024];
+                        while (in.read(bytes) != -1) {
+//                System.out.println("...");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    index++;
                 }
+            }else {
+                String filePath = file.getParent() + File.separator + index + "_" + file.getName();
+                start = durationFormat(startTime);
+                end = durationFormat(endTime);
 
                 List<String> commands = new ArrayList<String>();
+
                 commands.add(FFMPEG_PATH);
                 commands.add("-ss");
                 commands.add(start);
@@ -161,40 +197,6 @@ public class VideoUtil {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                index++;
-            }
-        }else {
-            String filePath = file.getParent() + File.separator + index + "_" + file.getName();
-            start = durationFormat(startTime);
-            end = durationFormat(endTime);
-
-            List<String> commands = new ArrayList<String>();
-
-            commands.add(FFMPEG_PATH);
-            commands.add("-ss");
-            commands.add(start);
-            commands.add("-to");
-            commands.add(end);
-            commands.add("-accurate_seek");
-            commands.add("-i");
-            commands.add(sourcePath);
-            commands.add("-codec");
-            commands.add("copy");
-            commands.add("-avoid_negative_ts");
-            commands.add("1");
-            commands.add(filePath);
-            try {
-                ProcessBuilder builder = new ProcessBuilder();
-                builder.command(commands);
-                builder.redirectErrorStream(true);
-                Process process = builder.start();
-                InputStream in = process.getInputStream();
-                byte[] bytes = new byte[1024];
-                while (in.read(bytes) != -1) {
-//                System.out.println("...");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }

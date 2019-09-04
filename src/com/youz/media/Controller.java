@@ -174,6 +174,7 @@ public class Controller {
         for (MediaInfo mediaInfo : list) {
             executor.execute(() -> {
                 File file = new File(mediaInfo.getFilePath());
+                //截取视频
                 VideoUtil.interceptVodTime(mediaInfo.getFilePath(), basePath + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
                 mediaInfo.setSchedule("已完成");
                 progressBar.setProgress(current.incrementAndGet() / count);

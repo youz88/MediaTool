@@ -12,7 +12,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("media.fxml"));
-        stage.setTitle("视频处理工具 V1.0");
+        stage.setTitle("视频处理工具 V2.0");
         stage.setScene(new Scene(root, 1200, 700));
         stage.show();
     }
