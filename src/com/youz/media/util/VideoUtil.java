@@ -1,70 +1,78 @@
 package com.youz.media.util;
 
 import com.youz.media.model.MediaInfo;
+import org.apache.commons.lang.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
 import static com.youz.media.util.MediaFileInfoParse.FFMPEG_PATH;
 
 public class VideoUtil {
+    private static final Random RANDOM = new Random();
 
     /****
-     * 获取指定时间内的图片
-     * @param videoPath:视频路径
-     * @param imagePath:图片保存路径
-     * @param hour:指定时
-     * @param min:指定分
-     * @param sec:指定秒
+     * 随机截取图片
+     * @param sourcePath:视频路径
+     * @param targetPath:图片保存基本路径
+     * @param duration:总时长
      */
-    public static Boolean getThumb(String videoPath, String imagePath, String hour, String min, String sec, String pixel) {
-        //ffmpeg.exe -i C:\yz\file_server\video\CSGO\123.ts -ss 00:00:20 -r 1 -q:v 2 -f image2 C:\yz\file_server\video\CSGO\a.jpeg
-        //ffmpeg.exe -ss 02:00:20 -i D:\file_server\132.mkv -y -f image2 D:\file_server\a.jpg
+    public static void randomThumb(String sourcePath, String targetPath, Integer duration, String width, String height, Integer num) {
         //ffmpeg.exe -ss 00:45:30 -i C:\yz\file_server\video\CSGO\123.ts  -vf select='eq(pict_type\,I)' -vsync 2 -s 1920*1080 -f image2 C:\yz\file_server\video\CSGO\a.jpg
-        List<String> commands = new ArrayList<String>();
+        if (StringUtils.isNotBlank(width) && StringUtils.isNotBlank(height) && num != null && num > 0) {
+            String pixel = width + "x" +height;
+            File sourceFile = new File(sourcePath);
+            for (int i=0;i<num;i++) {
+                String folderPath = targetPath + sourceFile.getParent().substring(sourceFile.getParent().lastIndexOf(File.separator));
+                File folderFile = new File(folderPath);
+                if (!folderFile.exists()) {
+                    folderFile.mkdirs();
+                }
+                String imagePath = folderPath + sourcePath.substring(sourcePath.lastIndexOf(File.separator),sourceFile.getName().lastIndexOf(".")) + "_" + (i+1) + ".jpg";
 
-        commands.add(FFMPEG_PATH);
-        commands.add("-ss");
-        commands.add(hour + ":" + min + ":" + sec);
-        commands.add("-i");
-        commands.add(videoPath);
-
-        commands.add("-vf");
-        commands.add("select='eq(pict_type\\,I)'");
-        commands.add("-vsync");
-        commands.add("2");
-
-        commands.add("-y");
-        commands.add("-f");
-        commands.add("image2");
-        commands.add("-s");
-        commands.add(pixel); //这个参数是设置截取图片的大小
-        commands.add("-b:v");
-        commands.add("2000k");
-//        commands.add("-q:v");//提高图片画质
-//        commands.add("2");
-        commands.add(imagePath);
-        try {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commands);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            InputStream in = process.getInputStream();
-            byte[] bytes = new byte[1024];
-            while (in.read(bytes) != -1) {
+                List<String> commands = new ArrayList<String>();
+                commands.add(FFMPEG_PATH);
+                commands.add("-ss");
+                commands.add(RANDOM.nextInt(duration) + 1 + "");
+                commands.add("-i");
+                commands.add(sourcePath);
+                commands.add("-vf");
+                commands.add("select='eq(pict_type\\,I)'");
+                commands.add("-vsync");
+                commands.add("2");
+                commands.add("-y");
+                commands.add("-f");
+                commands.add("image2");
+                commands.add("-s");
+                commands.add(pixel); //这个参数是设置截取图片的大小
+                commands.add("-b:v");
+                commands.add("2000k");
+                commands.add("-q:v");//提高图片画质
+                commands.add("2");
+                commands.add(imagePath);
+                try {
+                    ProcessBuilder builder = new ProcessBuilder();
+                    builder.command(commands);
+                    builder.redirectErrorStream(true);
+                    Process process = builder.start();
+                    InputStream in = process.getInputStream();
+                    byte[] bytes = new byte[1024];
+                    while (in.read(bytes) != -1) {
 //                System.out.println("...");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
-        return false;
     }
 
     /****

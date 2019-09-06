@@ -1,6 +1,8 @@
 package com.youz.media;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.youz.media.model.ExcelModel;
 import com.youz.media.model.MediaInfo;
 import com.youz.media.util.ExcelUtil;
 import com.youz.media.util.JsonUtil;
@@ -52,6 +54,12 @@ public class Controller {
     private TextField endInterceptVal;
     @FXML
     private TextField interceptRateVal;
+    @FXML
+    private TextField imageWidth;
+    @FXML
+    private TextField imageHeight;
+    @FXML
+    private TextField imageNum;
     @FXML
     private CheckBox switchExportExcel;
     @FXML
@@ -143,7 +151,7 @@ public class Controller {
             schedule.setCellValueFactory(new PropertyValueFactory<MediaInfo, String>("schedule"));
             ObservableList<MediaInfo> data = FXCollections.observableArrayList(mediaInfoList);
             mediTable.setItems(data);
-            //设置行选中时间
+            //设置行选中事件
             mediTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 mediaInfoTextArea.clear();
                 mediaInfoTextArea.appendText(newValue.buildTextAreaContent());
@@ -165,17 +173,20 @@ public class Controller {
         int startTime = NumberUtils.toInt(startInterceptVal.getText());
         int endTime = NumberUtils.toInt(endInterceptVal.getText());
         int cycle = NumberUtils.toInt(interceptRateVal.getText());
-
+        String basePath = targetPath.getText().trim() + File.separator;
+        //文件列表
         List<MediaInfo> list = mediTable.getItems();
+        //初始化进度
         double count = list.size();
         AtomicInteger current = new AtomicInteger();
-        String basePath = targetPath.getText().trim() + File.separator;
 
         for (MediaInfo mediaInfo : list) {
             executor.execute(() -> {
                 File file = new File(mediaInfo.getFilePath());
                 //截取视频
                 VideoUtil.interceptVodTime(mediaInfo.getFilePath(), basePath + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
+                //截图
+                VideoUtil.randomThumb(mediaInfo.getFilePath(),basePath,mediaInfo.getDuration(),imageWidth.getText(),imageHeight.getText(),NumberUtils.toInt(imageNum.getText()));
                 mediaInfo.setSchedule("已完成");
                 progressBar.setProgress(current.incrementAndGet() / count);
 
@@ -183,6 +194,10 @@ public class Controller {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
+                            //导出Excel
+                            if (switchExportExcel.isSelected()) {
+                                ExcelUtil.exportExcel(ExcelUtil.buildExcelMap(list),basePath);
+                            }
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
                             alert.titleProperty().set("提示");
                             alert.headerTextProperty().set("操作成功");

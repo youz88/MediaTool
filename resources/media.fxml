@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.text.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Text?>
 
-<BorderPane prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.youz.media.Controller">
+<BorderPane prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.youz.media.Controller">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
-          <Menu mnemonicParsing="false" text="文件">
-            <items>
-                  <MenuItem mnemonicParsing="false" onAction="#openFile" text="选择文件" />
-            </items>
-          </Menu>
           <Menu mnemonicParsing="false" text="帮助">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#showDonation" text="捐赠" />
@@ -45,18 +45,20 @@
                      <children>
                         <Pane prefHeight="326.0" prefWidth="447.0">
                            <children>
-                               <Text layoutX="22.0" layoutY="26.0" strokeType="OUTSIDE" strokeWidth="0.0" text="片头截取(秒)" />
-                               <Text layoutX="22.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="片尾截取(秒)" />
-                               <Text layoutX="22.0" layoutY="90.0" strokeType="OUTSIDE" strokeWidth="0.0" text="视频裁剪频率(秒)" />
-                               <TextField layoutX="125.0" layoutY="10.0" prefHeight="23.0" prefWidth="63.0" fx:id="startInterceptVal"/>
-                               <TextField layoutX="125.0" layoutY="43.0" prefHeight="23.0" prefWidth="63.0" fx:id="endInterceptVal"/>
-                               <TextField layoutX="125.0" layoutY="74.0" prefHeight="23.0" prefWidth="63.0" fx:id="interceptRateVal"/>
+                               <Text layoutX="7.0" layoutY="26.0" strokeType="OUTSIDE" strokeWidth="0.0" text="片头截取(秒)" />
+                               <Text layoutX="155.0" layoutY="25.0" strokeType="OUTSIDE" strokeWidth="0.0" text="片尾截取(秒)" />
+                               <Text layoutX="296.0" layoutY="26.0" strokeType="OUTSIDE" strokeWidth="0.0" text="视频裁剪频率(秒)" />
+                               <TextField fx:id="startInterceptVal" layoutX="76.0" layoutY="9.0" prefHeight="23.0" prefWidth="50.0" />
+                               <TextField fx:id="endInterceptVal" layoutX="225.0" layoutY="9.0" prefHeight="23.0" prefWidth="50.0" />
+                               <TextField fx:id="interceptRateVal" layoutX="390.0" layoutY="9.0" prefHeight="23.0" prefWidth="50.0" />
                                <Button layoutX="-2.0" layoutY="269.0" mnemonicParsing="false" onAction="#start" prefHeight="57.0" prefWidth="451.0" text="开始" />
-                               <CheckBox layoutX="253.0" layoutY="14.0" mnemonicParsing="false" text="导出编单Excel" fx:id="switchExportExcel"/>
-                               <Text layoutX="253.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="截图" />
-                               <TextField layoutX="290.0" layoutY="43.0" prefHeight="23.0" prefWidth="50.0" />
-                               <Text layoutX="351.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X" />
-                               <TextField layoutX="370.0" layoutY="43.0" prefHeight="23.0" prefWidth="50.0" />
+                               <CheckBox fx:id="switchExportExcel" layoutX="7.0" layoutY="83.0" mnemonicParsing="false" text="导出编单Excel" />
+                               <Text layoutX="7.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="截图" />
+                               <TextField layoutX="38.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageWidth"/>
+                               <Text layoutX="98.0" layoutY="62.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X" />
+                               <TextField layoutX="113.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageHeight"/>
+                              <Text layoutX="191.0" layoutY="62.0" strokeType="OUTSIDE" strokeWidth="0.0" text="数量" />
+                              <TextField layoutX="225.0" layoutY="46.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageNum"/>
                            </children>
                         </Pane>
                      </children>

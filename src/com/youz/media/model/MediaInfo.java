@@ -60,6 +60,9 @@ public class MediaInfo {
     /** 文件名称 */
     private String fileName;
 
+    /** 文件夹名称 */
+    private String folderName;
+
     /** 进度 */
     private StringProperty schedule = new SimpleStringProperty("-");
 
@@ -239,6 +242,14 @@ public class MediaInfo {
 
     public void setAudioInterface(String audioInterface) {
         this.audioInterface = audioInterface;
+    }
+
+    public String getFolderName() {
+        return folderName;
+    }
+
+    public void setFolderName(String folderName) {
+        this.folderName = folderName;
     }
 
     public String buildTextAreaContent(){

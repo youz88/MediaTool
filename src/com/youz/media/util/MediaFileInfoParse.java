@@ -23,6 +23,7 @@ public class MediaFileInfoParse {
             File file = new File(filepath);
             mediaInfo.setFilePath(file.getPath());
             mediaInfo.setFileName(file.getName().substring(0,file.getName().lastIndexOf(FILE_SPLIT)));
+            mediaInfo.setFolderName(file.getParent().substring(file.getParent().lastIndexOf(File.separator) + 1));
         } catch (Exception e) {
             e.printStackTrace();
         }
