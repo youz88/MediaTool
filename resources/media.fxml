@@ -54,11 +54,12 @@
                                <Button layoutX="-2.0" layoutY="269.0" mnemonicParsing="false" onAction="#start" prefHeight="57.0" prefWidth="451.0" text="开始" />
                                <CheckBox fx:id="switchExportExcel" layoutX="7.0" layoutY="83.0" mnemonicParsing="false" text="导出编单Excel" />
                                <Text layoutX="7.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="截图" />
-                               <TextField layoutX="38.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageWidth"/>
+                               <TextField fx:id="imageWidth" layoutX="38.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" />
                                <Text layoutX="98.0" layoutY="62.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X" />
-                               <TextField layoutX="113.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageHeight"/>
+                               <TextField fx:id="imageHeight" layoutX="113.0" layoutY="47.0" prefHeight="23.0" prefWidth="50.0" />
                               <Text layoutX="191.0" layoutY="62.0" strokeType="OUTSIDE" strokeWidth="0.0" text="数量" />
-                              <TextField layoutX="225.0" layoutY="46.0" prefHeight="23.0" prefWidth="50.0" fx:id="imageNum"/>
+                              <TextField fx:id="imageNum" layoutX="225.0" layoutY="46.0" prefHeight="23.0" prefWidth="50.0" />
+                              <CheckBox fx:id="mergeSheetExcel" layoutX="138.0" layoutY="83.0" mnemonicParsing="false" text="合并Sheet" />
                            </children>
                         </Pane>
                      </children>

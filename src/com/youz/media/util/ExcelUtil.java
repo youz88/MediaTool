@@ -18,7 +18,8 @@ import java.util.*;
 
 public class ExcelUtil {
 
-    public static void exportExcel(Map<String, List<ExcelModel>> map, String path) {
+    public static void exportExcel(List<MediaInfo> mediaInfoList, Boolean mergeSheetExcel, String path) {
+        Map<String, List<ExcelModel>> map = buildExcelMap(mergeSheetExcel,mediaInfoList);
         String excelPath = path + File.separator + new Date().getTime() + ".xls";
         String[] head = {"视频名称", "专辑名称", "时长(秒)", "时长(00:00:00)", "比特率", "编码格式", "媒体类型", "分辨率", "编码格式", "频率", "比特率", "大小", "大小(MB)", "描述"};
         FileOutputStream os = null;
@@ -99,7 +100,7 @@ public class ExcelUtil {
         return style;
     }
 
-    public static Map<String, List<ExcelModel>> buildExcelMap(List<MediaInfo> list) {
+    public static Map<String, List<ExcelModel>> buildExcelMap(Boolean mergeSheetExcel, List<MediaInfo> list) {
         Map<String, List<ExcelModel>> map = Maps.newHashMap();
         for (MediaInfo mediaInfo : list) {
             ExcelModel excelModel = new ExcelModel();
@@ -135,12 +136,22 @@ public class ExcelUtil {
             excelModel.setFileSize(mediaInfo.getFileSize() + "");
             excelModel.setFileSizeMB(new BigDecimal(mediaInfo.getFileSize()).divide(new BigDecimal(1048576), 2, RoundingMode.HALF_UP) + "MB");
 
-            List<ExcelModel> excelModelList = map.get(excelModel.getAlbumName());
-            if (excelModelList == null) {
-                excelModelList = Lists.newArrayList();
+            if (mergeSheetExcel) {
+                List<ExcelModel> excelModelList = map.get("sheet1");
+                if (excelModelList == null) {
+                    excelModelList = Lists.newArrayList();
+                }
+                excelModelList.add(excelModel);
+                map.put("sheet1",excelModelList);
+            } else {
+                List<ExcelModel> excelModelList = map.get(excelModel.getAlbumName());
+                if (excelModelList == null) {
+                    excelModelList = Lists.newArrayList();
+                }
+                excelModelList.add(excelModel);
+                map.put(excelModel.getAlbumName(),excelModelList);
             }
-            excelModelList.add(excelModel);
-            map.put(excelModel.getAlbumName(),excelModelList);
+
         }
         return map;
     }

@@ -1,14 +1,10 @@
 package com.youz.media;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.youz.media.model.ExcelModel;
 import com.youz.media.model.MediaInfo;
 import com.youz.media.util.ExcelUtil;
-import com.youz.media.util.JsonUtil;
 import com.youz.media.util.VideoUtil;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,12 +14,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
-import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -62,6 +52,8 @@ public class Controller {
     private TextField imageNum;
     @FXML
     private CheckBox switchExportExcel;
+    @FXML
+    private CheckBox mergeSheetExcel;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -196,7 +188,7 @@ public class Controller {
                         public void run() {
                             //导出Excel
                             if (switchExportExcel.isSelected()) {
-                                ExcelUtil.exportExcel(ExcelUtil.buildExcelMap(list),basePath);
+                                ExcelUtil.exportExcel(list,mergeSheetExcel.isSelected(),basePath);
                             }
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
                             alert.titleProperty().set("提示");
