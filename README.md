@@ -15,6 +15,6 @@ MediaTool
     - 2.文件放在项目根目录与resources同级目录下
 -----
 界面
-[[###][https://raw.githubusercontent.com/youz88/image/master/mediaTool.png]]
+![###](https://raw.githubusercontent.com/youz88/image/master/mediaTool.png)
 -
 -----
