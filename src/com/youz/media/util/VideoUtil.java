@@ -1,7 +1,9 @@
 package com.youz.media.util;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import com.youz.media.model.MediaInfo;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -19,55 +21,50 @@ import static com.youz.media.util.MediaFileInfoParse.FFMPEG_PATH;
 public class VideoUtil {
     private static final Random RANDOM = new Random();
 
-    /****
-     * 随机截取图片
-     * @param sourcePath:视频路径
-     * @param targetPath:图片保存基本路径
-     * @param duration:总时长
-     */
-    public static void randomThumb(String sourcePath, String targetPath, Integer duration, String width, String height, Integer num) {
-        //ffmpeg.exe -ss 00:45:30 -i C:\yz\file_server\video\CSGO\123.ts  -vf select='eq(pict_type\,I)' -vsync 2 -s 1920*1080 -f image2 C:\yz\file_server\video\CSGO\a.jpg
-        if (StringUtils.isNotBlank(width) && StringUtils.isNotBlank(height) && num != null && num > 0) {
-            String pixel = width + "x" +height;
-            File sourceFile = new File(sourcePath);
-            for (int i=0;i<num;i++) {
-                String folderPath = targetPath + sourceFile.getParent().substring(sourceFile.getParent().lastIndexOf(File.separator));
-                File folderFile = new File(folderPath);
-                if (!folderFile.exists()) {
-                    folderFile.mkdirs();
-                }
-                String imagePath = folderPath + sourcePath.substring(sourcePath.lastIndexOf(File.separator),sourceFile.getName().lastIndexOf(".")) + "_" + (i+1) + ".jpg";
+    public static void screenshot(String sourcePath, String targetPath, Integer duration, String pixel) {
+        File folderFile = new File(targetPath.substring(0,targetPath.lastIndexOf(File.separator)));
+        if (!folderFile.exists()) {
+            //创建图片目录
+            folderFile.mkdirs();
+        }
 
-                List<String> commands = new ArrayList<String>();
-                commands.add(FFMPEG_PATH);
-                commands.add("-ss");
-                commands.add(RANDOM.nextInt(duration) + 1 + "");
-                commands.add("-i");
-                commands.add(sourcePath);
-                commands.add("-vf");
-                commands.add("select='eq(pict_type\\,I)'");
-                commands.add("-vsync");
-                commands.add("2");
-                commands.add("-y");
-                commands.add("-f");
-                commands.add("image2");
-                commands.add("-s");
-                commands.add(pixel); //这个参数是设置截取图片的大小
-                commands.add("-b:v");
-                commands.add("2000k");
-                commands.add("-q:v");//提高图片画质
-                commands.add("2");
-                commands.add(imagePath);
+        List<String> commands = new ArrayList<String>();
+        commands.add(FFMPEG_PATH);
+        commands.add("-ss");
+        commands.add(duration.toString());
+        commands.add("-i");
+        commands.add(sourcePath);
+        commands.add("-vf");
+        commands.add("select='eq(pict_type\\,I)'");
+        commands.add("-vsync");
+        commands.add("2");
+        commands.add("-y");
+        commands.add("-f");
+        commands.add("image2");
+        commands.add("-s");
+        commands.add(pixel); //这个参数是设置截取图片的大小
+        commands.add("-b:v");
+        commands.add("2000k");
+        commands.add("-q:v");//提高图片画质
+        commands.add("2");
+        commands.add(targetPath);
+        InputStream in =  null;
+        try {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command(commands);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            in = process.getInputStream();
+            byte[] bytes = new byte[1024];
+            while (in.read(bytes) != -1) {
+//                        System.out.println("...");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
                 try {
-                    ProcessBuilder builder = new ProcessBuilder();
-                    builder.command(commands);
-                    builder.redirectErrorStream(true);
-                    Process process = builder.start();
-                    InputStream in = process.getInputStream();
-                    byte[] bytes = new byte[1024];
-                    while (in.read(bytes) != -1) {
-//                System.out.println("...");
-                    }
+                    in.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -75,40 +72,43 @@ public class VideoUtil {
         }
     }
 
-    /****
-     * 改变图片大小
-     * @param sourcePath:源图片路径
-     * @param toImagePath:图片保存路径
-     * @param pixel:图片尺寸
-     */
-    public static Boolean changePixel(String sourcePath, String toImagePath, String pixel) {
-//        ffmpeg.exe -i C:\\yz\\1.jpg -s 267x151 -y -f image2 C:\\yz\\a.jpg
-        List<String> commands = new ArrayList<String>();
+        /****
+         * 随机截取图片
+         * @param sourcePath:视频路径
+         * @param targetPath:图片保存基本路径
+         * @param duration:总时长
+         * @param widthStr:宽度
+         * @param heightStr:高度
+         * @param num:数量
+         */
+    public static void randomScreenshot(String sourcePath, String targetPath, Integer duration, String widthStr, String heightStr, Integer num) {
+        //ffmpeg.exe -ss 00:45:30 -i C:\yz\file_server\video\CSGO\123.ts  -vf select='eq(pict_type\,I)' -vsync 2 -s 1920*1080 -f image2 C:\yz\file_server\video\CSGO\a.jpg
+        if (StringUtils.isNotBlank(widthStr) && StringUtils.isNotBlank(heightStr) && num != null && num > 0) {
+            int width = NumberUtils.toInt(widthStr);
+            int height = NumberUtils.toInt(heightStr);
+            String pixel = widthStr + "x" +heightStr;
 
-        commands.add(FFMPEG_PATH);
-        commands.add("-i");
-        commands.add(sourcePath);
-        commands.add("-s");
-        commands.add(pixel); //这个参数是设置截取图片的大小
-        commands.add("-y");
-        commands.add("-f");
-        commands.add("image2");
-        commands.add(toImagePath);
-        try {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commands);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            InputStream in = process.getInputStream();
-            byte[] bytes = new byte[1024];
-            while (in.read(bytes) != -1) {
-//                System.out.println("...");
+            //构造图片文件夹
+            File sourceFile = new File(sourcePath);
+            String folderPath = targetPath + sourceFile.getParent().substring(sourceFile.getParent().lastIndexOf(File.separator));
+
+            for (int i=0;i<num;i++) {
+                String imagePath = folderPath + sourcePath.substring(sourcePath.lastIndexOf(File.separator),sourceFile.getName().lastIndexOf(".")) + "_" + (i+1) + ".jpg";
+
+                int time = RANDOM.nextInt(duration) + 1;
+                if (width < height) {
+                    //竖图
+                    int newWidth = Double.valueOf(16 / 9.0 * height).intValue();
+                    pixel = newWidth + "x" + height;
+                    //先截取和高度成比例的图片
+                    VideoUtil.screenshot(sourcePath,imagePath,time,pixel);
+                    //再从图片中间截取
+                    cropImage(imagePath,imagePath,newWidth/2-width/2,0,width,height,"jpg");
+                } else {
+                    VideoUtil.screenshot(sourcePath,imagePath,time,pixel);
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
-        return false;
     }
 
     /****
@@ -278,5 +278,27 @@ public class VideoUtil {
             buffer.append("00:00");
         }
         return buffer.toString();
+    }
+
+    /** 图片裁剪 */
+    public static boolean cropImage(String sourcePath,String targetPath,int x,int y,int w,int h,String sufix) {
+        InputStream is = null;
+        try {
+            is = new FileInputStream(sourcePath);
+            BufferedImage bufferedImage = ImageIO.read(is);
+            bufferedImage = bufferedImage.getSubimage(x,y,w,h);
+            return ImageIO.write(bufferedImage,sufix,new File(targetPath));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Boolean.FALSE;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

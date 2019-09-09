@@ -22,7 +22,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="帮助">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#showDonation" text="捐赠" />
+              <MenuItem mnemonicParsing="false" onAction="#showDonation" text="关于" />
             </items>
           </Menu>
         </menus>

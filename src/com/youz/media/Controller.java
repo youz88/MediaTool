@@ -101,13 +101,13 @@ public class Controller {
 
     @FXML
     private void showDonation(ActionEvent event) {
-        ImageView alipay = new ImageView(getClass().getClassLoader().getResource("images/alipay.png").toString());
+        ImageView logo = new ImageView(getClass().getClassLoader().getResource("images/logo.png").toString());
         Stage window = new Stage();
         window.setTitle("o(*￣▽￣*)o");
         window.initModality(Modality.APPLICATION_MODAL);
         window.setResizable(Boolean.FALSE);
         BorderPane root = new BorderPane();
-        root.setCenter(alipay);
+        root.setCenter(logo);
         Scene scene = new Scene(root);
         window.setScene(scene);
         window.showAndWait();
@@ -178,7 +178,7 @@ public class Controller {
                 //截取视频
                 VideoUtil.interceptVodTime(mediaInfo.getFilePath(), basePath + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
                 //截图
-                VideoUtil.randomThumb(mediaInfo.getFilePath(),basePath,mediaInfo.getDuration(),imageWidth.getText(),imageHeight.getText(),NumberUtils.toInt(imageNum.getText()));
+                VideoUtil.randomScreenshot(mediaInfo.getFilePath(),basePath,mediaInfo.getDuration(),imageWidth.getText(),imageHeight.getText(),NumberUtils.toInt(imageNum.getText()));
                 mediaInfo.setSchedule("已完成");
                 progressBar.setProgress(current.incrementAndGet() / count);
 
