@@ -1,6 +1,6 @@
 package com.youz.media.util;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+import com.youz.media.Const;
 import com.youz.media.model.MediaInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -8,11 +8,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -72,38 +69,39 @@ public class VideoUtil {
         }
     }
 
-        /****
-         * 随机截取图片
-         * @param sourcePath:视频路径
-         * @param targetPath:图片保存基本路径
-         * @param duration:总时长
-         * @param widthStr:宽度
-         * @param heightStr:高度
-         * @param num:数量
-         */
+    /**
+     * 随机截取图片
+     * @param sourcePath:视频路径
+     * @param targetPath:图片保存基本路径
+     * @param duration:总时长
+     * @param widthStr:宽度
+     * @param heightStr:高度
+     * @param num:数量
+     */
     public static void randomScreenshot(String sourcePath, String targetPath, Integer duration, String widthStr, String heightStr, Integer num) {
         //ffmpeg.exe -ss 00:45:30 -i C:\yz\file_server\video\CSGO\123.ts  -vf select='eq(pict_type\,I)' -vsync 2 -s 1920*1080 -f image2 C:\yz\file_server\video\CSGO\a.jpg
         if (StringUtils.isNotBlank(widthStr) && StringUtils.isNotBlank(heightStr) && num != null && num > 0) {
             int width = NumberUtils.toInt(widthStr);
             int height = NumberUtils.toInt(heightStr);
-            String pixel = widthStr + "x" +heightStr;
+            String pixel = widthStr + Const.IMAGE_PIXEL_SPLIT +heightStr;
 
             //构造图片文件夹
             File sourceFile = new File(sourcePath);
             String folderPath = targetPath + sourceFile.getParent().substring(sourceFile.getParent().lastIndexOf(File.separator));
 
             for (int i=0;i<num;i++) {
-                String imagePath = folderPath + sourcePath.substring(sourcePath.lastIndexOf(File.separator),sourceFile.getName().lastIndexOf(".")) + "_" + (i+1) + ".jpg";
+                //图片路径
+                String imagePath = folderPath + sourcePath.substring(sourcePath.lastIndexOf(File.separator),sourceFile.getName().lastIndexOf(Const.POINT_CHAR)) + Const.UNDERLINE_CHAR + (i+1) + Const.POINT_CHAR + Const.IMAGE_TYPE;
 
                 int time = RANDOM.nextInt(duration) + 1;
                 if (width < height) {
                     //竖图
                     int newWidth = Double.valueOf(16 / 9.0 * height).intValue();
-                    pixel = newWidth + "x" + height;
+                    pixel = newWidth + Const.IMAGE_PIXEL_SPLIT + height;
                     //先截取和高度成比例的图片
                     VideoUtil.screenshot(sourcePath,imagePath,time,pixel);
                     //再从图片中间截取
-                    cropImage(imagePath,imagePath,newWidth/2-width/2,0,width,height,"jpg");
+                    cropImage(imagePath,imagePath,newWidth/2-width/2,0,width,height, Const.IMAGE_TYPE);
                 } else {
                     VideoUtil.screenshot(sourcePath,imagePath,time,pixel);
                 }
@@ -122,7 +120,7 @@ public class VideoUtil {
 
         if (startTime > 0 || endTime > 0 || cycle > 0) {
             File file = new File(targetPath);
-            String suffix = file.getName().substring(file.getName().lastIndexOf("."));
+            String suffix = file.getName().substring(file.getName().lastIndexOf(Const.POINT_CHAR));
             File directory = new File(file.getParent());
             if (!directory.exists()) {
                 directory.mkdirs();
@@ -135,7 +133,7 @@ public class VideoUtil {
             int index = 1;
             if (cycle > 0) {
                 for (int i = startTime; i < endTime; i = i + cycle) {
-                    String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(".")) + "_" + index + suffix;
+                    String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(Const.POINT_CHAR)) + Const.UNDERLINE_CHAR + index + suffix;
                     start = durationFormat(i);
                     if(i+cycle < endTime){
                         end = durationFormat(i+cycle);
@@ -173,7 +171,7 @@ public class VideoUtil {
                     index++;
                 }
             }else {
-                String filePath = file.getParent() + File.separator + index + "_" + file.getName();
+                String filePath = file.getParent() + File.separator + index + Const.UNDERLINE_CHAR + file.getName();
                 start = durationFormat(startTime);
                 end = durationFormat(endTime);
 
@@ -211,7 +209,7 @@ public class VideoUtil {
 
     public static void trim(String scourcePath, String createPath, Integer x, Integer y, Integer width, Integer height) {
         try {
-            String formatName = scourcePath.substring(scourcePath.lastIndexOf(".") + 1);
+            String formatName = scourcePath.substring(scourcePath.lastIndexOf(Const.POINT_CHAR) + 1);
             BufferedImage bufferedImage = ImageIO.read(new FileInputStream(scourcePath));
             bufferedImage = bufferedImage.getSubimage(x, y, width, height);
             File file = new File(createPath);
