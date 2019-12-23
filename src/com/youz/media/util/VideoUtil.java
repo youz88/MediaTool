@@ -299,4 +299,135 @@ public class VideoUtil {
             }
         }
     }
+
+    /**
+     * 去水印
+     * @param sourcePath:视频路径
+     * @param targetPath:最终路径
+     * @param xArr:总时长
+     * @param yArr:宽度
+     * @param wArr:高度
+     * @param hArr:数量
+     */
+    public static void removeWatermark(String sourcePath, String targetPath, Integer[] xArr, Integer[] yArr, Integer[] wArr, Integer[] hArr) {
+        //./ffmpeg.exe -i program00618829.ts -vf "delogo=x=1595:y=505:w=142:h=63,delogo=x=1715:y=1:w=203:h=25" -s 1920x1080 -vcodec h264 -c:a copy -b 6M 3.ts -y        if (StringUtils.isNotBlank(widthStr) && StringUtils.isNotBlank(heightStr) && num != null && num > 0) {
+        File folderFile = new File(targetPath.substring(0,targetPath.lastIndexOf(File.separator)));
+        if (!folderFile.exists()) {
+            //创建图片目录
+            folderFile.mkdirs();
+        }
+
+        List<String> commands = new ArrayList<String>();
+        commands.add(FFMPEG_PATH);
+        commands.add("-i");
+        commands.add(sourcePath.replace("\\","/"));
+        commands.add("-filter_complex");
+        StringBuffer buffer = new StringBuffer();
+        for (int i=0;i<xArr.length;i++) {
+            buffer.append("delogo=")
+                    .append("x=").append(xArr[i]).append(":")
+                    .append("y=").append(yArr[i]).append(":")
+                    .append("w=").append(wArr[i]).append(":")
+                    .append("h=").append(hArr[i])
+                    .append(",");
+        }
+        commands.add(""+buffer.substring(0,buffer.length()-1)+"");
+        commands.add("-s");
+        commands.add("1920x1080");
+        commands.add("-vcodec");
+        commands.add("h264");
+        commands.add("-c:a");
+        commands.add("copy");
+        commands.add("-b");
+        commands.add("6M");
+        commands.add(targetPath.replace("\\","/"));
+        commands.add("-y");
+        InputStream in =  null;
+        try {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command(commands);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            in = process.getInputStream();
+            byte[] bytes = new byte[1024];
+            while (in.read(bytes) != -1) {
+//                        System.out.println(new String(bytes));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * 合并视频文件(码率、音频要一致)
+     * @param sourcePathArr:源视频路径
+     * @param targetPath:最终路径
+     */
+    public static void mergeFile(String[] sourcePathArr, String targetPath) {
+        File file = new File("merge.txt");
+        PrintWriter printWriter = null;
+        try {
+            printWriter = new PrintWriter(new FileWriter(file,false),true);
+            for (String path:sourcePathArr) {
+                printWriter.println("file '" + path + "'");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (printWriter != null) {
+                printWriter.close();
+            }
+        }
+
+        //./ffmpeg.exe -f concat -i filelist.txt -c copy result.ts -y
+        File folderFile = new File(targetPath.substring(0,targetPath.lastIndexOf(File.separator)));
+        if (!folderFile.exists()) {
+            //创建图片目录
+            folderFile.mkdirs();
+        }
+
+        List<String> commands = new ArrayList<String>();
+        commands.add(FFMPEG_PATH);
+        commands.add("-f");
+        commands.add("concat");
+        commands.add("-safe");
+        commands.add("0");
+        commands.add("-i");
+        commands.add(file.getPath());
+        commands.add("-c");
+        commands.add("copy");
+        commands.add(targetPath);
+        commands.add("-y");
+        InputStream in =  null;
+        try {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command(commands);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            in = process.getInputStream();
+            byte[] bytes = new byte[1024];
+            while (in.read(bytes) != -1) {
+//                System.out.println(new String(bytes));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }

@@ -9,4 +9,9 @@ public class Const {
     public static final String POINT_CHAR = ".";
 
     public static final String UNDERLINE_CHAR = "_";
+
+    public static final String COMMA_CHAR = ",";
+
+    public static final String EMPTY = "";
+
 }

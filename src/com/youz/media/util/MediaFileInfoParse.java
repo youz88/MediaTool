@@ -1,6 +1,8 @@
 package com.youz.media.util;
 
+import com.youz.media.Const;
 import com.youz.media.model.MediaInfo;
+import org.apache.commons.lang.StringUtils;
 import org.apache.oro.text.regex.*;
 
 import java.io.BufferedReader;
@@ -12,7 +14,7 @@ import java.util.List;
 
 public class MediaFileInfoParse {
 
-    public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/ffmpeg/bin/ffmpeg.exe";
+    public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/resources/ffmpeg/bin/ffmpeg.exe";
     private static final String FILE_SPLIT = ".";
 
     public static MediaInfo parse(String filepath) {
@@ -67,7 +69,7 @@ public class MediaFileInfoParse {
         try {
             PatternCompiler compiler = new Perl5Compiler();
             String regexDuration = "Duration: (.*?), start: (.*?), bitrate: (\\d*) kb\\/s";
-            String regexVideo = "Video: (.*?) .*, (.*?), (.*?) .*, (.*?) fps, (.*?) tbr, (.*?) tbn, (\\w*) tbc";
+            String regexVideo = "Video: (.*?) .*, (.*?)\\((.*?)\\), (.*?) .*, (.*?) fps, (.*?) tbr, (.*?) tbn, (\\w*) tbc";
             String regexAudio = "Audio: (\\w*) .*, (\\d*) Hz, (.*?), (\\w*), (\\d*) kb\\/s";
             Pattern patternDuration = compiler.compile(regexDuration,
                     Perl5Compiler.CASE_INSENSITIVE_MASK);
@@ -94,11 +96,16 @@ public class MediaFileInfoParse {
                 MatchResult re = matcherVideo.getMatch();
                 mediaInfo.setVideoCodeType(re.group(1));
                 mediaInfo.setVideoType(re.group(2));
-                mediaInfo.setVideoPixel(re.group(3));
-                mediaInfo.setVideoFps(re.group(4));
-                mediaInfo.setVideoTbr(re.group(5));
-                mediaInfo.setVideoTbn(re.group(6));
-                mediaInfo.setVideoTbc(re.group(7));
+                String pixel = re.group(4);
+                if (StringUtils.isNotBlank(pixel) && pixel.contains(Const.COMMA_CHAR)) {
+                    mediaInfo.setVideoPixel(pixel.replace(Const.COMMA_CHAR,Const.EMPTY));
+                } else {
+                    mediaInfo.setVideoPixel(pixel);
+                }
+                mediaInfo.setVideoFps(re.group(5));
+                mediaInfo.setVideoTbr(re.group(6));
+                mediaInfo.setVideoTbn(re.group(7));
+                mediaInfo.setVideoTbc(re.group(8));
             }
 
             Pattern patternAudio = compiler.compile(regexAudio,
