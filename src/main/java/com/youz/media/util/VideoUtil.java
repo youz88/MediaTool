@@ -2,8 +2,10 @@ package com.youz.media.util;
 
 import com.youz.media.Const;
 import com.youz.media.model.MediaInfo;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -16,8 +18,17 @@ import java.util.Random;
 import static com.youz.media.util.MediaFileInfoParse.FFMPEG_PATH;
 
 public class VideoUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VideoUtil.class);
     private static final Random RANDOM = new Random();
 
+    /**
+     * 截图
+     * @param sourcePath 原视频路径
+     * @param targetPath 目标文件路径
+     * @param duration 时长
+     * @param pixel 图片尺寸
+     */
     public static void screenshot(String sourcePath, String targetPath, Integer duration, String pixel) {
         File folderFile = new File(targetPath.substring(0,targetPath.lastIndexOf(File.separator)));
         if (!folderFile.exists()) {
@@ -57,7 +68,9 @@ public class VideoUtil {
 //                        System.out.println("...");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("截图错误", e);
+            }
         } finally {
             if (in != null) {
                 try {
@@ -71,8 +84,8 @@ public class VideoUtil {
 
     /**
      * 随机截取图片
-     * @param sourcePath:视频路径
-     * @param targetPath:图片保存基本路径
+     * @param sourcePath 原视频路径
+     * @param targetPath 目标文件路径
      * @param duration:总时长
      * @param widthStr:宽度
      * @param heightStr:高度
@@ -109,11 +122,14 @@ public class VideoUtil {
         }
     }
 
-    /****
-     * 截取视频时长
-     * @param sourcePath:源视频路径
-     * @param targetPath:目标视频路径
-     * @param duration:总时长
+    /**
+     * 截取视频
+     * @param sourcePath 原视频路径
+     * @param targetPath 目标文件路径
+     * @param duration 总时长
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @param cycle 截取频率(每cycle秒裁一段)
      */
     public static void interceptVodTime(String sourcePath, String targetPath, Integer duration, Integer startTime, Integer endTime, Integer cycle) {
 //        ffmpeg  -i ./我与精彩集锦只差一个走位的距离.ts -vcodec copy -acodec copy -ss 00:00:00 -to 00:06:45 ./我与 精彩集锦只差1一个走位的距离.ts -y
@@ -131,7 +147,7 @@ public class VideoUtil {
             String end;
 
             int index = 1;
-            if (cycle > 0) {
+            if (cycle != null && cycle > 0) {
                 for (int i = startTime; i < endTime; i = i + cycle) {
                     String filePath = file.getParent() + File.separator + file.getName().substring(0,file.getName().lastIndexOf(Const.POINT_CHAR)) + Const.UNDERLINE_CHAR + index + suffix;
                     start = durationFormat(i);
@@ -166,18 +182,21 @@ public class VideoUtil {
 //                System.out.println("...");
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        if (LOGGER.isErrorEnabled()) {
+                            LOGGER.error("截取视频错误", e);
+                        }
                     }
                     index++;
                 }
             }else {
-                String filePath = file.getParent() + File.separator + index + Const.UNDERLINE_CHAR + file.getName();
+                String filePath = file.getParent() + File.separator + file.getName();
                 start = durationFormat(startTime);
                 end = durationFormat(endTime);
 
                 List<String> commands = new ArrayList<String>();
 
                 commands.add(FFMPEG_PATH);
+                commands.add("-y");
                 commands.add("-ss");
                 commands.add(start);
                 commands.add("-to");
@@ -201,27 +220,22 @@ public class VideoUtil {
 //                System.out.println("...");
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    if (LOGGER.isErrorEnabled()) {
+                        LOGGER.error("截取视频错误", e);
+                    }
                 }
             }
         }
     }
 
-    public static void trim(String scourcePath, String createPath, Integer x, Integer y, Integer width, Integer height) {
-        try {
-            String formatName = scourcePath.substring(scourcePath.lastIndexOf(Const.POINT_CHAR) + 1);
-            BufferedImage bufferedImage = ImageIO.read(new FileInputStream(scourcePath));
-            bufferedImage = bufferedImage.getSubimage(x, y, width, height);
-            File file = new File(createPath);
-            ImageIO.write(bufferedImage, formatName, file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void copy(String scourcePath, String createPath) throws Exception {
-        File source = new File(scourcePath);
-        File dest = new File(createPath);
+    /**
+     * 文件拷贝
+     * @param sourcePath 原视频路径
+     * @param targetPath 目标文件路径
+     */
+    public static void copy(String sourcePath, String targetPath) {
+        File source = new File(sourcePath);
+        File dest = new File(targetPath);
         File parentPath = new File(dest.getParent());
         if(!parentPath.exists()){
             parentPath.mkdirs();
@@ -234,12 +248,24 @@ public class VideoUtil {
             sourceCh = fis.getChannel();
             destCh = fos.getChannel();
             destCh.transferFrom(sourceCh, 0, sourceCh.size());
-        }finally {
+        } catch (Exception e) {
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("文件拷贝错误", e);
+            }
+        } finally {
             if(sourceCh != null){
-                sourceCh.close();
+                try {
+                    sourceCh.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             if(destCh != null){
-                destCh.close();
+                try {
+                    destCh.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -278,7 +304,17 @@ public class VideoUtil {
         return buffer.toString();
     }
 
-    /** 图片裁剪 */
+    /**
+     * 图片尺寸裁剪
+     * @param sourcePath 源文件路径
+     * @param targetPath 目标文件路径
+     * @param x x轴
+     * @param y y轴
+     * @param w 宽度
+     * @param h 高度
+     * @param sufix 文件后缀
+     * @return
+     */
     public static boolean cropImage(String sourcePath,String targetPath,int x,int y,int w,int h,String sufix) {
         InputStream is = null;
         try {
@@ -287,7 +323,9 @@ public class VideoUtil {
             bufferedImage = bufferedImage.getSubimage(x,y,w,h);
             return ImageIO.write(bufferedImage,sufix,new File(targetPath));
         } catch (Exception e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("图片尺寸裁剪错误", e);
+            }
             return Boolean.FALSE;
         } finally {
             if (is != null) {
@@ -302,15 +340,16 @@ public class VideoUtil {
 
     /**
      * 去水印
-     * @param sourcePath:视频路径
+     * @param mediaInfo:视频路径
      * @param targetPath:最终路径
      * @param xArr:总时长
      * @param yArr:宽度
      * @param wArr:高度
      * @param hArr:数量
      */
-    public static void removeWatermark(String sourcePath, String targetPath, Integer[] xArr, Integer[] yArr, Integer[] wArr, Integer[] hArr) {
+    public static void removeWatermark(MediaInfo mediaInfo, String targetPath, Integer[] xArr, Integer[] yArr, Integer[] wArr, Integer[] hArr) {
         //./ffmpeg.exe -i program00618829.ts -vf "delogo=x=1595:y=505:w=142:h=63,delogo=x=1715:y=1:w=203:h=25" -s 1920x1080 -vcodec h264 -c:a copy -b 6M 3.ts -y        if (StringUtils.isNotBlank(widthStr) && StringUtils.isNotBlank(heightStr) && num != null && num > 0) {
+        String sourcePath = mediaInfo.getFilePath();
         File folderFile = new File(targetPath.substring(0,targetPath.lastIndexOf(File.separator)));
         if (!folderFile.exists()) {
             //创建图片目录
@@ -332,14 +371,6 @@ public class VideoUtil {
                     .append(",");
         }
         commands.add(""+buffer.substring(0,buffer.length()-1)+"");
-        commands.add("-s");
-        commands.add("1920x1080");
-        commands.add("-vcodec");
-        commands.add("h264");
-        commands.add("-c:a");
-        commands.add("copy");
-        commands.add("-b");
-        commands.add("6M");
         commands.add(targetPath.replace("\\","/"));
         commands.add("-y");
         InputStream in =  null;
@@ -354,7 +385,9 @@ public class VideoUtil {
 //                        System.out.println(new String(bytes));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("去水印错误", e);
+            }
         } finally {
             if (in != null) {
                 try {
@@ -418,7 +451,9 @@ public class VideoUtil {
 //                System.out.println(new String(bytes));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("合并视频错误", e);
+            }
         } finally {
             if (in != null) {
                 try {
@@ -429,5 +464,4 @@ public class VideoUtil {
             }
         }
     }
-
 }

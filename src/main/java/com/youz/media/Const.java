@@ -14,4 +14,8 @@ public class Const {
 
     public static final String EMPTY = "";
 
+    public static final String SEMICOLON = ";";
+
+    public static final String VERTICAL_REGEX = "\\|";
+
 }

@@ -4,12 +4,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.youz.media.model.ExcelModel;
 import com.youz.media.model.MediaInfo;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -17,6 +18,8 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class ExcelUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MediaFileInfoParse.class);
 
     public static void exportExcel(List<MediaInfo> mediaInfoList, Boolean mergeSheetExcel, String path) {
         Map<String, List<ExcelModel>> map = buildExcelMap(mergeSheetExcel,mediaInfoList);
@@ -68,7 +71,9 @@ public class ExcelUtil {
             os = new FileOutputStream(excelPath);
             workbook.write(os);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("导出EXCEL编单错误", e);
+            }
         } finally {
             if (os != null) {
                 try {
@@ -89,8 +94,8 @@ public class ExcelUtil {
      */
     private static HSSFCellStyle createCellStyle(HSSFWorkbook workbook, short fontSize) {
         HSSFCellStyle style = workbook.createCellStyle();
-        style.setAlignment(HSSFCellStyle.ALIGN_CENTER);//水平居中
-        style.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);//垂直居中
+        style.setAlignment(HorizontalAlignment.CENTER);//水平居中
+        style.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
         //创建字体
         HSSFFont font = workbook.createFont();
 //        font.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);//加粗字体

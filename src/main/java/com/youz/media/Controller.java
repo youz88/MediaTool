@@ -18,11 +18,11 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.File;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +54,14 @@ public class Controller {
     private CheckBox switchExportExcel;
     @FXML
     private CheckBox mergeSheetExcel;
+    @FXML
+    private TextField watermarkX;
+    @FXML
+    private TextField watermarkY;
+    @FXML
+    private TextField watermarkWidth;
+    @FXML
+    private TextField watermarkHeight;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -179,6 +187,15 @@ public class Controller {
                 VideoUtil.interceptVodTime(mediaInfo.getFilePath(), basePath + file.getName(), mediaInfo.getDuration(), startTime, endTime, cycle);
                 //截图
                 VideoUtil.randomScreenshot(mediaInfo.getFilePath(),basePath,mediaInfo.getDuration(),imageWidth.getText(),imageHeight.getText(),NumberUtils.toInt(imageNum.getText()));
+                //去水印
+                if (StringUtils.isNotBlank(watermarkX.getText()) && StringUtils.isNotBlank(watermarkY.getText()) &&
+                     StringUtils.isNotBlank(watermarkWidth.getText()) &&StringUtils.isNotBlank(watermarkHeight.getText())) {
+                    Integer[] xArr = {NumberUtils.toInt(watermarkX.getText())};
+                    Integer[] yArr = {NumberUtils.toInt(watermarkY.getText())};
+                    Integer[] wArr = {NumberUtils.toInt(watermarkWidth.getText())};
+                    Integer[] hArr = {NumberUtils.toInt(watermarkHeight.getText())};
+                    VideoUtil.removeWatermark(mediaInfo,basePath + file.getName(),xArr,yArr,wArr,hArr);
+                }
                 mediaInfo.setSchedule("已完成");
                 progressBar.setProgress(current.incrementAndGet() / count);
 

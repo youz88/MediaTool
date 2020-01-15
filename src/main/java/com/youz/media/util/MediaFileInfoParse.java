@@ -2,8 +2,10 @@ package com.youz.media.util;
 
 import com.youz.media.Const;
 import com.youz.media.model.MediaInfo;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.oro.text.regex.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,21 +16,25 @@ import java.util.List;
 
 public class MediaFileInfoParse {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MediaFileInfoParse.class);
+
     public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/resources/ffmpeg/bin/ffmpeg.exe";
+    //打包 public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/ffmpeg/bin/ffmpeg.exe";
     private static final String FILE_SPLIT = ".";
+
+    public static void main(String[] args) {
+        MediaInfo parse = MediaFileInfoParse.parse("C:\\Users\\imbatv-007\\Desktop\\新建文件夹 (2)\\666.mp4");
+        System.out.println(parse);
+    }
 
     public static MediaInfo parse(String filepath) {
         MediaInfo mediaInfo = null;
-        try {
-            String info = getInitFileInfo(filepath);
-            mediaInfo = parseFileInfo(info);
-            File file = new File(filepath);
-            mediaInfo.setFilePath(file.getPath());
-            mediaInfo.setFileName(file.getName().substring(0,file.getName().lastIndexOf(FILE_SPLIT)));
-            mediaInfo.setFolderName(file.getParent().substring(file.getParent().lastIndexOf(File.separator) + 1));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String info = getInitFileInfo(filepath);
+        mediaInfo = parseFileInfo(info);
+        File file = new File(filepath);
+        mediaInfo.setFilePath(file.getPath());
+        mediaInfo.setFileName(file.getName().substring(0,file.getName().lastIndexOf(FILE_SPLIT)));
+        mediaInfo.setFolderName(file.getParent().substring(file.getParent().lastIndexOf(File.separator) + 1));
         return mediaInfo;
     }
 
@@ -55,7 +61,9 @@ public class MediaFileInfoParse {
             }
             p.waitFor();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("扫描文件错误", e);
+            }
         } finally {
             if (null != p) {
                 p.destroy();
@@ -121,7 +129,9 @@ public class MediaFileInfoParse {
                 mediaInfo.setAudioBitRate(re.group(5));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error("解析文件信息错误", e);
+            }
         }
         return mediaInfo;
     }
