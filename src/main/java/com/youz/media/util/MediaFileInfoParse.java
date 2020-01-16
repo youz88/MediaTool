@@ -1,9 +1,6 @@
 package com.youz.media.util;
 
-import com.youz.media.Const;
 import com.youz.media.model.MediaInfo;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.oro.text.regex.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +9,8 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MediaFileInfoParse {
@@ -21,11 +20,6 @@ public class MediaFileInfoParse {
     public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/resources/ffmpeg/bin/ffmpeg.exe";
     //打包 public static final String FFMPEG_PATH = new File("").getAbsolutePath() + "/ffmpeg/bin/ffmpeg.exe";
     private static final String FILE_SPLIT = ".";
-
-    public static void main(String[] args) {
-        MediaInfo parse = MediaFileInfoParse.parse("C:\\Users\\imbatv-007\\Desktop\\新建文件夹 (2)\\666.mp4");
-        System.out.println(parse);
-    }
 
     public static MediaInfo parse(String filepath) {
         MediaInfo mediaInfo = null;
@@ -75,58 +69,61 @@ public class MediaFileInfoParse {
     public static MediaInfo parseFileInfo(String info) {
         MediaInfo mediaInfo = new MediaInfo();
         try {
-            PatternCompiler compiler = new Perl5Compiler();
-            String regexDuration = "Duration: (.*?), start: (.*?), bitrate: (\\d*) kb\\/s";
-            String regexVideo = "Video: (.*?) .*, (.*?)\\((.*?)\\), (.*?) .*, (.*?) fps, (.*?) tbr, (.*?) tbn, (\\w*) tbc";
-            String regexAudio = "Audio: (\\w*) .*, (\\d*) Hz, (.*?), (\\w*), (\\d*) kb\\/s";
-            Pattern patternDuration = compiler.compile(regexDuration,
-                    Perl5Compiler.CASE_INSENSITIVE_MASK);
-            PatternMatcher matcherDuration = new Perl5Matcher();
-            if (matcherDuration.contains(info, patternDuration)) {
-                MatchResult re = matcherDuration.getMatch();
-                String durationStr = re.group(1);
+            String regexDuration = "Duration: (.*?), start: (.*?), bitrate: (.*?) kb/s";
+            String regexVideo = "Video: (.*?) .*?, (.*?)(\\(.*?\\))?, (.*?), (.*?) kb/s, (.*?) fps, (.*?) tbr, (.*?) tbn, (.*?) tbc";
+            String regexAudio = "Audio: (.*?) .*?, (.*?) Hz, (.*?), (.*?), (.*?) kb/s";
+
+            Pattern patternDuration = Pattern.compile(regexDuration);
+            Matcher matcherDuration = patternDuration.matcher(info);
+            if (matcherDuration.find()) {
+                String durationStr = matcherDuration.group(1);
+                String startStr = matcherDuration.group(2);
+                String bitRateStr = matcherDuration.group(3);
                 mediaInfo.setDurationFormat(durationStr);
                 String[] durationArr = durationStr.split(":");
                 int duration = 0;
                 for (int i = 0; i < durationArr.length; i++) {
-                    duration += Double.valueOf(durationArr[i])
-                            * Math.pow(60, durationArr.length - 1 - i);
+                    duration += Double.valueOf(durationArr[i]) * Math.pow(60, durationArr.length - 1 - i);
                 }
                 mediaInfo.setDuration(duration);
-                mediaInfo.setStart(re.group(2));
-                mediaInfo.setBitRate(Integer.valueOf(re.group(3)));
+                mediaInfo.setStart(startStr);
+                mediaInfo.setBitRate(Integer.valueOf(bitRateStr));
             }
 
-            Pattern patternVideo = compiler.compile(regexVideo,
-                    Perl5Compiler.CASE_INSENSITIVE_MASK);
-            PatternMatcher matcherVideo = new Perl5Matcher();
-            if (matcherVideo.contains(info, patternVideo)) {
-                MatchResult re = matcherVideo.getMatch();
-                mediaInfo.setVideoCodeType(re.group(1));
-                mediaInfo.setVideoType(re.group(2));
-                String pixel = re.group(4);
-                if (StringUtils.isNotBlank(pixel) && pixel.contains(Const.COMMA_CHAR)) {
-                    mediaInfo.setVideoPixel(pixel.replace(Const.COMMA_CHAR,Const.EMPTY));
-                } else {
-                    mediaInfo.setVideoPixel(pixel);
-                }
-                mediaInfo.setVideoFps(re.group(5));
-                mediaInfo.setVideoTbr(re.group(6));
-                mediaInfo.setVideoTbn(re.group(7));
-                mediaInfo.setVideoTbc(re.group(8));
+            Pattern patternVideo = Pattern.compile(regexVideo);
+            Matcher matcherVideo = patternVideo.matcher(info);
+            if (matcherVideo.find()) {
+                String videoCodeTypeStr = matcherVideo.group(1);
+                String videoTypeStr = matcherVideo.group(2);
+                String pixelStr = matcherVideo.group(4);
+                String bitRateStr = matcherVideo.group(5);
+                String videoFpsStr = matcherVideo.group(6);
+                String videoTbrStr = matcherVideo.group(7);
+                String videoTbnStr = matcherVideo.group(8);
+                String videoTbcStr = matcherVideo.group(9);
+                mediaInfo.setVideoCodeType(videoCodeTypeStr);
+                mediaInfo.setVideoType(videoTypeStr);
+                mediaInfo.setVideoPixel(pixelStr);
+                mediaInfo.setVideoFps(videoFpsStr);
+                mediaInfo.setVideoTbr(videoTbrStr);
+                mediaInfo.setVideoTbn(videoTbnStr);
+                mediaInfo.setVideoTbc(videoTbcStr);
             }
 
-            Pattern patternAudio = compiler.compile(regexAudio,
-                    Perl5Compiler.CASE_INSENSITIVE_MASK);
-            PatternMatcher matcherAudio = new Perl5Matcher();
+            Pattern patternAudio = Pattern.compile(regexAudio);
+            Matcher matcherAudio = patternAudio.matcher(info);
 
-            if (matcherAudio.contains(info, patternAudio)) {
-                MatchResult re = matcherAudio.getMatch();
-                mediaInfo.setAudioCodeType(re.group(1));
-                mediaInfo.setAudiofreq(re.group(2));
-                mediaInfo.setAudioVoice(re.group(3));
-                mediaInfo.setAudioInterface(re.group(4));
-                mediaInfo.setAudioBitRate(re.group(5));
+            if (matcherAudio.find()) {
+                String audioCodeTypeStr = matcherAudio.group(1);
+                String audiofreqStr = matcherAudio.group(2);
+                String audioVoiceStr = matcherAudio.group(3);
+                String audioInterfaceStr = matcherAudio.group(4);
+                String audioBitRateStr = matcherAudio.group(5);
+                mediaInfo.setAudioCodeType(audioCodeTypeStr);
+                mediaInfo.setAudiofreq(audiofreqStr);
+                mediaInfo.setAudioVoice(audioVoiceStr);
+                mediaInfo.setAudioInterface(audioInterfaceStr);
+                mediaInfo.setAudioBitRate(audioBitRateStr);
             }
         } catch (Exception e) {
             if (LOGGER.isErrorEnabled()) {
