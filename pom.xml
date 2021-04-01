@@ -15,7 +15,7 @@
 
         <lombok.version>1.18.10</lombok.version>
         <slf4j.version>1.7.28</slf4j.version>
-        <guava.version>25.1-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <poi.version>3.17</poi.version>
         <oro.version>2.0.8</oro.version>
         <commons.version>3.4</commons.version>
