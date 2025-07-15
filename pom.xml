@@ -18,7 +18,7 @@
         <guava.version>32.0.0-jre</guava.version>
         <poi.version>4.1.1</poi.version>
         <oro.version>2.0.8</oro.version>
-        <commons.version>3.4</commons.version>
+        <commons.version>3.18.0</commons.version>
     </properties>
 
     <dependencies>
